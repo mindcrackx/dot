@@ -222,6 +222,7 @@ if filereadable(expand("~/.vim/autoload/plug.vim"))
   Plug 'tpope/vim-fugitive'
   Plug 'hashivim/vim-terraform'
   Plug 'morhetz/gruvbox'
+  Plug 'ojroques/vim-oscyank'
   call plug#end()
 
   " terraform
@@ -392,3 +393,5 @@ set rtp^=~/.vimwork
 colorscheme gruvbox
 
 inoremap jk <ESC>
+
+vnoremap Y :OSCYank<CR>
