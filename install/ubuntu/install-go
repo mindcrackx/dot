@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-install_17() { 
+install_18() { 
   cd "$(mktemp -d)"
 
   os=linux
@@ -22,12 +22,5 @@ install_17() {
   echo "Make sure /usr/local/go/bin is in PATH"
 }
 
-upgrade_18() {
-  /usr/local/go/bin/go install golang.org/dl/go1.18rc1@latest
-  "$GOBIN/go1.18rc1" download
-  go install golang.org/x/tools/gopls@latest
-}
-
-# install_17
-upgrade_18
+install_18
 

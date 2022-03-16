@@ -1,2 +1,2 @@
 #!/bin/sh
-exec "$GOBIN/go1.18rc1" "$@"
+exec "/usr/local/go/bin/go" "$@"
