@@ -2,8 +2,8 @@
   
 case "$PLATFORM" in
   mac)
-    netstat -an -ptcp | grep LISTEN
+    ss -an -ptcp | grep LISTEN
     lsof -i -P | grep -i "listen"
     ;;
-  *) netstat -tulpn |grep LISTEN ;;
+  *) ss -tulpn | grep LISTEN ;;
 esac
