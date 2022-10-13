@@ -54,9 +54,7 @@ if v:version >= 800
 endif
 
 " mark trailing spaces as errors
-if has("match")
-  match ErrorMsg '\s\+$'
-endif
+match IncSearch '\s\+$'
 
 " enough for line numbers + gutter within 80 standard
 set textwidth=72
@@ -72,6 +70,9 @@ set norelativenumber
 
 " turn on default spell checking
 "set spell
+
+" disable spellcapcheck
+set spc=
 
 " more risky, but cleaner
 set nobackup
@@ -203,7 +204,7 @@ set background=dark
 
 set cinoptions+=:0
 
-" Edit/Reload vimr configuration file
+" Edit/Reload vimrc configuration file
 nnoremap confe :e $HOME/.vimrc<CR>
 nnoremap confr :source $HOME/.vimrc<CR>
 
@@ -224,9 +225,6 @@ if filereadable(expand("~/.vim/autoload/plug.vim"))
   Plug 'morhetz/gruvbox'
   Plug 'ojroques/vim-oscyank'
   call plug#end()
-
-  " terraform
-  let g:terraform_fmt_on_save = 1
 
   " pandoc
   let g:pandoc#formatting#mode = 'h' " A'
@@ -255,12 +253,6 @@ if filereadable(expand("~/.vim/autoload/plug.vim"))
   "let g:go_metalinter_autosave=1
   set updatetime=100
   "let g:go_gopls_analyses = { 'composites' : v:false }
-  au FileType go nmap <leader>t :GoTest!<CR>
-  au FileType go nmap <leader>v :GoVet!<CR>
-  au FileType go nmap <leader>b :GoBuild!<CR>
-  au FileType go nmap <leader>c :GoCoverageToggle<CR>
-  au FileType go nmap <leader>i :GoInfo<CR>
-  au FileType go nmap <leader>l :GoMetaLinter!<CR>
   au FileType go nmap <leader>m ilog.Print("made")<CR><ESC>
 else
   autocmd vimleavepre *.go !gofmt -w % " backup if fatih fails
@@ -322,7 +314,7 @@ au bufnewfile,bufRead *ssh/config set filetype=sshconfig
 au bufnewfile,bufRead .dockerignore set filetype=gitignore
 au bufnewfile,bufRead *gitconfig set filetype=gitconfig
 au bufnewfile,bufRead /tmp/psql.edit.* set syntax=sql
-au bufnewfile,bufRead *.go set spell
+au bufnewfile,bufRead *.go set spell spellcapcheck=0
 
 "fix bork bash detection
 if has("eval")  " vim-tiny detection
