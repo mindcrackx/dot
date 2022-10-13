@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+
+sudo add-apt-repository --yes --update ppa:ansible/ansible
+sudo apt install -y ansible
+sudo apt install -y python3-argcomplete
+sudo activate-global-python-argcomplete3
