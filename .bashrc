@@ -66,8 +66,10 @@ export LESS_TERMCAP_se="" # "0m"
 export LESS_TERMCAP_so="[34m" # blue
 export LESS_TERMCAP_ue="" # "0m"
 export LESS_TERMCAP_us="[4m"  # underline
-export ANSIBLE_INVENTORY="$HOME/.config/ansible/ansible_hosts"
-export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock
+export ANSIBLE_CONFIG="$HOME/.config/ansible/config.ini"
+export ANSIBLE_INVENTORY="$HOME/.config/ansible/inventory.yaml"
+export ANSIBLE_LOAD_CALLBACK_PLUGINS=1
+# export DOCKER_HOST=unix:///run/user/$(id -u)/docker.sock
 
 [[ -d /.vim/spell ]] && export VIMSPELL=("$HOME/.vim/spell/*.add")
 
@@ -103,7 +105,7 @@ pathappend() {
     PATH=${PATH/%":$arg"/}
     export PATH="${PATH:+"$PATH:"}$arg"
   done
-} && export pathappend
+} && export -f pathappend
 
 pathprepend() {
   for arg in "$@"; do
@@ -113,14 +115,15 @@ pathprepend() {
     PATH=${PATH/%":$arg"/}
     export PATH="$arg${PATH:+":${PATH}"}"
   done
-} && export pathprepend
+} && export -f pathprepend
 
 # remember last arg will be first in path
 pathprepend \
-  /usr/local/bin \
   "$HOME/.local/bin" \
   "$GHREPOS/cmd-"* \
-  "$SCRIPTS" 
+  /usr/local/go/bin \
+  /usr/local/bin \
+  "$SCRIPTS"
 
 pathappend \
   /usr/local/opt/coreutils/libexec/gnubin \
@@ -181,7 +184,7 @@ __ps1() {
   [[ $dir = "$B" ]] && B=.
   countme="$USER$PROMPT_AT$(hostname):$dir($B)\$ "
 
-  [[ $B = master || $B = main ]] && b="$r"
+  [[ $B == master || $B == main ]] && b="$r"
   [[ -n "$B" ]] && B="$g($b$B$g)"
 
   short="$u\u$g$PROMPT_AT$h\h$g:$w$dir$B$p$P$x "
@@ -216,8 +219,10 @@ alias scripts='cd $SCRIPTS'
 alias snippets='cd $SNIPPETS'
 alias ls='ls -h --color=auto'
 alias free='free -h'
+alias tree='tree -a'
 alias df='df -h'
-alias chmox='chmod +x'
+alias chmox='chmod u+x'
+alias diff='diff --color'
 alias sshh='sshpass -f $HOME/.sshpass ssh '
 alias temp='cd $(mktemp -d)'
 alias view='vi -R' # which is usually linked to vim
@@ -303,7 +308,6 @@ _have spotify && . <(spotify completion bash 2>/dev/null)
 _have k && complete -o default -F __start_kubectl k
 _have kind && . <(kind completion bash)
 _have kompose && . <(kompose completion bash)
-_have yq && . <(yq shell-completion bash)
 _have helm && . <(helm completion bash)
 _have minikube && . <(minikube completion bash)
 _have conftest && . <(conftest completion bash)
@@ -312,10 +316,20 @@ _have podman && _source_if "$HOME/.local/share/podman/completion" # d
 _have docker && _source_if "$HOME/.local/share/docker/completion" # d
 _have docker-compose && complete -F _docker_compose dc # dc
 
+_have ansible && . <(register-python-argcomplete3 ansible)
+_have ansible-config && . <(register-python-argcomplete3 ansible-config)
+_have ansible-console && . <(register-python-argcomplete3 ansible-console)
+_have ansible-doc && . <(register-python-argcomplete3 ansible-doc)
+_have ansible-galaxy && . <(register-python-argcomplete3 ansible-galaxy)
+_have ansible-inventory && . <(register-python-argcomplete3 ansible-inventory)
+_have ansible-playbook && . <(register-python-argcomplete3 ansible-playbook)
+_have ansible-pull && . <(register-python-argcomplete3 ansible-pull)
+_have ansible-vault && . <(register-python-argcomplete3 ansible-vault)
+
 # -------------------- personalized configuration --------------------
 _source_if "$HOME/.bash_personal"
 _source_if "$HOME/.bash_private"
 _source_if "$HOME/.bash_work"
 
-complete -C /usr/bin/terraform terraform
-complete -C /usr/bin/terraform tf
+_have terraform && complete -C /usr/bin/terraform terraform
+_have terraform && complete -C /usr/bin/terraform tf
