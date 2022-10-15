@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+jq '.plays[].tasks[].hosts | to_entries[] | {key, "stdout_lines": .value["stdout_lines"]}' | jq -s
