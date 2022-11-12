@@ -5,6 +5,8 @@ repo="compose"
 os=$(uname -s)
 arch=$(uname -m)
 latest=$(curl -sSL "https://api.github.com/repos/$user/$repo/releases/latest" | jq -r .name)
-rel="https://github.com/docker/compose/releases/download/$latest/docker-compose-${os,,}-$arch"
+rel="https://github.com/$user/$repo/releases/download/$latest/docker-compose-${os,,}-$arch"
+mkdir -p "$HOME/.docker/cli-plugins"
 curl -sSL "$rel" -o "$HOME/.docker/cli-plugins/docker-compose"
 chmod +x "$HOME/.docker/cli-plugins/docker-compose"
+

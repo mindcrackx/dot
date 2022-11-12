@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+
+user="goharbor"
+repo="harbor"
+latest=$(curl -sSL "https://api.github.com/repos/$user/$repo/releases/latest" | jq -r .name)
+rel="https://github.com/$user/$repo/releases/download/$latest/harbor-offline-installer-$latest.tgz"
+asc="https://github.com/$user/$repo/releases/download/$latest/harbor-offline-installer-$latest.tgz.asc"
+curl -sSLo "harbor.tgz" "$rel"
+curl -sSLo "harbor.tgz.asc" "$asc"
+
+gpg --keyserver hkps://keyserver.ubuntu.com --receive-keys 644FF454C0B4115C
+if ! gpg -v --keyserver hkps://keyserver.ubuntu.com --verify "harbor.tgz.asc"; then
+    echo "could not verify download"
+    exit 1
+fi
+
+tar xzvf "harbor.tgz"
+
+echo ""
+echo "rm harbor.*"
+echo "mv harbor/* ."
+echo ""
+echo "mkdir -p /etc/docker/certs.d/anton.local/"
+echo "cp yourdomain.com.crt /etc/docker/certs.d/yourdomain.com/"
+echo "cp yourdomain.com.key /etc/docker/certs.d/yourdomain.com/"
+echo "cp ca.crt /etc/docker/certs.d/yourdomain.com/"
+echo ""
+echo "mkdir -p /data/cert"
+echo "cp yourdomain.com.crt /data/cert/"
+echo "cp yourdomain.com.key /data/cert/"
+echo "cp ca.crt /data/cert/"
+echo ""
+echo "cp harbor.yml.tmpl harbor.yml"
+echo "vim harbor.yml"
+echo "  set /data to something different?"
+echo "./prepare"
+echo "./install.sh --with-notary --with-trivy --with-chartmuseum"
+echo ""
+echo "troubleshoot: permissions! /var/log/harbor"

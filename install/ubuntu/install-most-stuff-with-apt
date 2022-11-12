@@ -1,4 +1,3 @@
 #!/bin/sh
 
-sudo apt install nmap jq pcregrep lynx make uidmap ruby python-is-python3 libcurses-perl figlet cmatrix build-essential libncurses-dev autoconf entr
-sudo cpan -I Term::Animation
+sudo apt install nmap jq pcregrep lynx make uidmap python-is-python3 figlet cmatrix build-essential libncurses-dev autoconf entr shellcheck
