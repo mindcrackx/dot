@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-git clone ~/Repos/github.com/docker/docker-install
+mkdir -p ~/Repos/github.com/docker/docker-install
+cd ~/Repos/github.com/docker/
+git clone https://github.com/docker/docker-install
 cd ~/Repos/github.com/docker/docker-install
 ./install.sh
 dockerd-rootless-setuptool.sh install
