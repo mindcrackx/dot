@@ -1,0 +1,172 @@
+# Allow hibernation when secureboot + tpm
+
+https://github.com/n3rodev/fedora-41-post-install-guide
+
+---
+
+https://community.frame.work/t/guide-fedora-36-hibernation-with-enabled-secure-boot-and-full-disk-encryption-fde-decrypting-over-tpm2/25474
+
+
+patch: https://gist.githubusercontent.com/brknkfr/95d1925ccdbb7a2d18947c168dfabbee/raw/200b7bdca0e9b2ccb9465efbbe9f983060464cb3/0001-Add-a-lockdown_hibernate-parameter.patch
+
+---
+
+# Wipe old keys and enroll new key. You have to execute this command again after a kernel upgrade.
+systemd-cryptenroll /dev/nvme0n1p3 --wipe-slot=tpm2 --tpm2-device=auto --tpm2-pcrs=0,2,4,7
+
+
+# Add decryption key to tpm.
+systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+2+4+7 /dev/nvme0n1p3
+# Add tpm2 configuration option to /etc/crypttab
+luks-$UUID UUID=disk-$UUID none tpm2-device=auto,discard
+# Update initramfs (to get necessary tpm2 libraries and parameters for decryption into initramfs)
+dracut -f
+
+### Set variables
+## search for kernel: https://koji.fedoraproject.org/koji/search?start=50&order=-name&terms=kernel-6.%2A.fc41&type=build&match=glob
+export arch=x86_64
+export ver=6.14
+export minrel=4
+export pkgrel=200
+export subver=$minrel-$pkgrel
+export fedver=fc41
+export name=$(hostname)
+
+sudo dnf install fedpkg qt3-devel libXi-devel gcc-c++ ccache
+### Custom Machine owner key for secure boot
+# add the user doing the build to /etc/pesign/user
+# Allow kernel signing
+sudo /usr/libexec/pesign/pesign-authorize
+# Create key
+openssl req -new -x509 -newkey rsa:2048 -keyout "key.pem" -outform DER -out "cert.der" -nodes -days 36500 -subj "CA=${name}"
+# Import key to UEFI database.
+mokutil --import "cert.der"
+time rpmbuild -bb --with baseonly --without debuginfo --target=$arch kernel.spec | tee ~/build-kernel.log
+## careful: use usb stick with live fedora for mok, as fedora won't boot
+## anymore if it can't find its mokmanager and is stuck enrolling the key.
+# You have to reboot the system after importing the key with "mokutil" to import the key via UEFI system
+
+# After rebooting create PKCS #12 key file and import it into the nss database
+openssl pkcs12 -export -out key.p12 -inkey key.pem -in cert.der
+certutil -A -i cert.der -n "${name}" -d /etc/pki/pesign/ -t "Pu,Pu,Pu"
+pk12util -i key.p12 -d /etc/pki/pesign
+
+### Setup build system
+rm -rf ~/rpmbuild/*
+rpmdev-setuptree
+koji download-build --arch=src kernel-$ver.$subver.$fedver
+rpm -Uvh kernel-$ver.$subver.$fedver.src.rpm
+cd ~/rpmbuild/SPECS
+# Install necessary dependencies for compiling the kernel
+rpmbuild -bp kernel.spec
+# Compile kernel
+## get sources by starting to build for a bit, then ctrl+c
+cd ~/rpmbuild/SPECS
+time rpmbuild -bb --with baseonly --without debuginfo --target=$arch kernel.spec | tee ~/build-kernel.log
+
+# get new patch for the kernel
+i am compiling the fedora kernel, and need a patch file. i have the source code to the new kernel i want to compile, and the patch file for an older kernel.
+you need to adjust the patch file, so it works with the source code of the new kernel (correct line numbers and stuff).
+please give me the full new patch file.
+# give ai the old patch (see at the bottom) and the source files. Or
+# just do it yourself and run git diff.
+cat -n ~/rpmbuild/BUILD/kernel-$ver.$minrel-build/kernel-$ver.$minrel/linux-$ver.$subver.$name.$fedver.$arch/Documentation/admin-guide/kernel-parameters.txt | xclip -selection clipboard
+cat -n ~/rpmbuild/BUILD/kernel-$ver.$minrel-build/kernel-$ver.$minrel/linux-$ver.$subver.$name.$fedver.$arch/kernel/power/hibernate.c | xclip -selection clipboard
+# put the new patch into ~/rpmbuild/SOURCES/0001-Add-a-lockdown_hibernate-parameter.patch
+
+### Apply patches and customize kernel configuration
+# Define patch in kernel.spec for building the rpms
+# Patch2: 0001-Add-a-lockdown_hibernate-parameter.patch
+cd ~/rpmbuild/SPECS
+sed -i '/^Patch999999/i Patch2: 0001-Add-a-lockdown_hibernate-parameter.patch' kernel.spec
+# Add patch as ApplyOptionalPatch
+sed -i '/^ApplyOptionalPatch linux-kernel-test.patch/i ApplyOptionalPatch 0001-Add-a-lockdown_hibernate-parameter.patch' kernel.spec
+# Add custom kernel name
+sed -i "s/# define buildid .local/%define buildid .$name/g" kernel.spec
+# Add machine owner key
+sed -i "s/%define buildid \.$name/%define buildid .$name\n%define pe_signing_cert $name/g" kernel.spec
+# Install necessary dependencies for compiling the kernel
+rpmbuild -bp kernel.spec
+
+# Compile kernel (on old hardware "Intel(R) Core(TM) i5-7300U CPU @ 2.60GHz" ~3h10m)
+cd ~/rpmbuild/SPECS
+time rpmbuild -bb --with baseonly --without debuginfo --target=$arch kernel.spec | tee ~/build-kernel.log
+
+# Install kernel
+cd ~/rpmbuild/RPMS/$arch/
+sudo dnf install *.rpm
+
+# check that its default:
+sudo grubby --default-kernel
+# otherwise: sudo grubby --set-default /boot/vmlinuz-DEINE-KERNEL-VERSION
+
+# DONT FORGET AFTER FIRST REBOOT INTO NEW KERNEL:
+# Add decryption key to tpm.
+systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=0+2+4+7 /dev/nvme0n1p3
+
+# Maybe lock kernel
+## Plugin installieren
+sudo dnf install python3-dnf-plugins-extras-versionlock
+## Aktuelle Kernel-Pakete sperren
+sudo dnf versionlock add kernel*
+
+================================================================================
+cat SOURCES/0001-Add-a-lockdown_hibernate-parameter.patch
+================================================================================
+
+diff --git a/Documentation/admin-guide/kernel-parameters.txt b/Documentation/admin-guide/kernel-parameters.txt
+index aa7447f88..b554f3e98 100644
+--- a/Documentation/admin-guide/kernel-parameters.txt
++++ b/Documentation/admin-guide/kernel-parameters.txt
+@@ -3156,6 +3156,11 @@
+ 			to extract confidential information from the kernel
+ 			are also disabled.
+
++	lockdown_hibernate	[HIBERNATION]
++			Enable hibernation even if lockdown is enabled. Enable this only if
++			your swap is encrypted and secured properly, as an attacker can
++			modify the kernel offline during hibernation.
++
+ 	locktorture.acq_writer_lim= [KNL]
+ 			Set the time limit in jiffies for a lock
+ 			acquisition.  Acquisitions exceeding this limit
+diff --git a/kernel/power/hibernate.c b/kernel/power/hibernate.c
+index b129ed1d2..547953e14 100644
+--- a/kernel/power/hibernate.c
++++ b/kernel/power/hibernate.c
+@@ -37,6 +37,7 @@
+ #include "power.h"
+
+
++static int lockdown_hibernate;
+ static int nocompress;
+ static int noresume;
+ static int nohibernate;
+@@ -92,7 +93,7 @@ void hibernate_release(void)
+ bool hibernation_available(void)
+ {
+ 	return nohibernate == 0 &&
+-		!security_locked_down(LOCKDOWN_HIBERNATION) &&
++		(lockdown_hibernate || !security_locked_down(LOCKDOWN_HIBERNATION)) &&
+ 		!secretmem_active() && !cxl_mem_active();
+ }
+
+@@ -1434,6 +1435,12 @@ static int __init nohibernate_setup(char *str)
+ 	return 1;
+ }
+
++static int __init lockdown_hibernate_setup(char *str)
++{
++	lockdown_hibernate = 1;
++	return 1;
++}
++
+ static const char * const comp_alg_enabled[] = {
+ #if IS_ENABLED(CONFIG_CRYPTO_LZO)
+ 	COMPRESSION_ALGO_LZO,
+@@ -1492,3 +1499,4 @@ __setup("hibernate=", hibernate_setup);
+ __setup("resumewait", resumewait_setup);
+ __setup("resumedelay=", resumedelay_setup);
+ __setup("nohibernate", nohibernate_setup);
++__setup("lockdown_hibernate", lockdown_hibernate_setup);
+

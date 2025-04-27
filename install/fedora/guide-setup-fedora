@@ -1,0 +1,28 @@
+# Setup Fedora
+
+## https://github.com/devangshekhawat/Fedora-42-Post-Install-Guide
+
+## firefox extensions:
+* Dark Reader
+* Enhancer for YouTube
+* Privacy Badger
+* uBlock Origin
+
+## gnome-extensions:
+### User Extensions
+* Hibernate Status Button https://github.com/arelange/gnome-shell-extension-hibernate-status
+* Just Perfection https://gitlab.gnome.org/jrahmatzadeh/just-perfection
+* Touchpad Gesture Customization https://github.com/HieuTNg/touchpad-gesture-customization
+* Vitals https://github.com/corecoding/Vitals
+### System Extensions
+* App Menu
+* Background Logo https://pagure.io/background-logo-extension
+* Launch new instance
+* Places Status indicator
+* Pop Shell
+
+## vscodium extensions
+* Go (golang)
+* templ-vscode (a-h)
+* Vim (vscodevim)
+

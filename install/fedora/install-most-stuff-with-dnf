@@ -1,0 +1,3 @@
+#!/bin/sh
+
+sudo dnf install nmap jq pcregrep lynx make figlet cmatrix entr shellcheck
