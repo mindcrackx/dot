@@ -386,4 +386,6 @@ colorscheme gruvbox
 
 inoremap jk <ESC>
 
-vnoremap Y :OSCYank<CR>
+nmap <leader>c <Plug>OSCYankOperator
+nmap <leader>cc <leader>c_
+vmap <leader>c <Plug>OSCYankVisual
