@@ -1,0 +1,31 @@
+[user]
+	email = youremail@example.com
+	name = yourusername
+	signingkey = yoursigningkey
+[init]
+	defaultBranch = main
+[merge]
+	ff = false
+[status]
+	showUntrackedFiles = all
+[alias]
+	glog = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset %G?'
+	glola = log --graph --all --pretty=format:'%Cred%h%Crest -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset %G?'
+
+	st = status
+	co = checkout
+	cb = checkout -b
+	b = branch
+	r = remote
+	rb = rebase
+	a = add
+	c = commit -v
+	ca = commit -v --amend
+	d = diff
+	ds = diff --staged
+	com = checkout main
+	cod = checkout develop
+	m = merge --no-ff
+[commit]
+	gpgsign = true
+
