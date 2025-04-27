@@ -3,7 +3,7 @@
 
 case $- in
 *i*) ;; # interactive
-*) return ;; 
+*) return ;;
 esac
 
 # ------------------------- distro detection -------------------------
@@ -171,7 +171,7 @@ PROMPT_MAX=95
 PROMPT_AT=@
 
 __ps1() {
-  local P='$' dir="${PWD##*/}" B countme short long double\
+  local P='$' dir="${PWD##*/}" B countme short long double kctx\
     r='\[\e[31m\]' g='\[\e[1;30m\]' h='\[\e[34m\]' \
     u='\[\e[33m\]' p='\[\e[34m\]' w='\[\e[35m\]' \
     b='\[\e[36m\]' x='\[\e[0m\]'
@@ -187,13 +187,16 @@ __ps1() {
   [[ $B == master || $B == main ]] && b="$r"
   [[ -n "$B" ]] && B="$g($b$B$g)"
 
-  short="$u\u$g$PROMPT_AT$h\h$g:$w$dir$B$p$P$x "
-  long="$g╔ $u\u$g$PROMPT_AT$h\h$g:$w$dir$B\n$g╚ $p$P$x "
-  double="$g╔ $u\u$g$PROMPT_AT$h\h$g:$w$dir\n$g║ $B\n$g╚ $p$P$x "
+  kctx=$(kubectl config current-context 2>/dev/null)
+  [[ -n "$kctx" ]] && kctx="$g[$b$kctx$g]"
 
-  if (( ${#countme} > PROMPT_MAX )); then
+  short="$u\u$g$PROMPT_AT$h\h$g:$w$dir$B$kctx$p$P$x "
+  long="$g╔ $u\u$g$PROMPT_AT$h\h$g:$w$dir$B$kctx\n$g╚ $p$P$x "
+  double="$g╔ $u\u$g$PROMPT_AT$h\h$g:$w$dir\n$g║ $B$kctx\n$g╚ $p$P$x "
+
+  if (( ${#countme} + ${#kctx} > PROMPT_MAX )); then
     PS1="$double"
-  elif (( ${#countme} > PROMPT_LONG )); then
+  elif (( ${#countme} + ${#kctx} > PROMPT_LONG )); then
     PS1="$long"
   else
     PS1="$short"
@@ -251,7 +254,7 @@ envx() {
 
 [[ -e "$HOME/.env" ]] && envx "$HOME/.env"
 
-new-from() { 
+new-from() {
   local template="$1"
   local name="$2"
   ! _have gh && echo "gh command not found" && return 1
@@ -294,9 +297,51 @@ clone() {
 # ------------- source external dependencies / completion ------------
 
 owncomp=(
-  pdf md zet yt gl auth pomo config live iam sshkey ws x clip 
+  pdf md zet yt gl auth pomo config live iam sshkey ws x clip
   ./build build b ./k8sapp k8sapp ./setup ./cmd run ./run
 )
+
+_tailscale()
+{
+        local cur prev words cword
+        _init_completion -n = || return
+
+        if [[ $cword -eq 1 ]]; then
+                SUBCOMMANDS=$(tailscale --help 2>&1 | awk '/SUBCOMMANDS/{ f = 1; next } /FLAGS/{ f = 0 } f{print $1}')
+                SUBCOMMANDS="$SUBCOMMANDS debug"
+                FLAGS="-h --help --socket"
+                COMPREPLY=( $(compgen -W "$SUBCOMMANDS $FLAGS" -- "$cur" ))
+                return
+        else
+                subcmd="${COMP_WORDS[1]}"
+                if [[ "$cur" = *=* ]]; then
+                        COMPREPLY=( $(compgen -W 'false' -- "${cur#*=}") )
+                        return
+                elif [[ "$cur" = -* ]]; then
+                        FLAGS=$(tailscale "$subcmd" --help 2>&1 | awk '/FLAGS/{ f = 1; next } f'  | grep -oE -- '--[^ ]+[=]?' | tr -d ',')
+                        FLAGS="$FLAGS --help"
+                        COMPREPLY=( $(compgen -W "$FLAGS" -- "$cur" ))
+                        return
+                else
+                        case "$subcmd" in
+                                "ping"|"ssh")
+                                        IP_AND_HOSTNAME=$(tailscale status 2>&1  | awk '{print $1"\n"$2}')
+                                        COMPREPLY=( $(compgen -W "$IP_AND_HOSTNAME" -- "$cur" ))
+                                ;;
+                                "debug")
+                                        SUBCOMMANDS=""
+                                        if [[ $cword -eq 2 ]]; then
+                                                SUBCOMMANDS=$(tailscale "$subcmd" --help 2>&1 | awk '/SUBCOMMANDS/{ f = 1; next } /FLAGS/{ f = 0 } f{print $1}')
+                                        fi
+                                        FLAGS=$(tailscale "$subcmd" --help 2>&1 | awk '/FLAGS/{ f = 1; next } f'  | grep -oE -- '--[^ ]+[=]?' | tr -d ',')
+                                        COMPREPLY=( $(compgen -W "$SUBCOMMANDS $FLAGS" -- "$cur" ))
+                                ;;
+                        esac
+                fi
+        fi
+}
+
+_have tailscale && complete -F _tailscale tailscale
 
 for i in "${owncomp[@]}"; do complete -C "$i" "$i"; done
 
@@ -308,6 +353,7 @@ _have spotify && . <(spotify completion bash 2>/dev/null)
 _have k && complete -o default -F __start_kubectl k
 _have kind && . <(kind completion bash)
 _have kompose && . <(kompose completion bash)
+_have hcloud && . <(hcloud completion bash)
 _have helm && . <(helm completion bash)
 _have minikube && . <(minikube completion bash)
 _have conftest && . <(conftest completion bash)
@@ -316,15 +362,15 @@ _have podman && _source_if "$HOME/.local/share/podman/completion" # d
 _have docker && _source_if "$HOME/.local/share/docker/completion" # d
 _have docker-compose && complete -F _docker_compose dc # dc
 
-_have ansible && . <(register-python-argcomplete3 ansible)
-_have ansible-config && . <(register-python-argcomplete3 ansible-config)
-_have ansible-console && . <(register-python-argcomplete3 ansible-console)
-_have ansible-doc && . <(register-python-argcomplete3 ansible-doc)
-_have ansible-galaxy && . <(register-python-argcomplete3 ansible-galaxy)
-_have ansible-inventory && . <(register-python-argcomplete3 ansible-inventory)
-_have ansible-playbook && . <(register-python-argcomplete3 ansible-playbook)
-_have ansible-pull && . <(register-python-argcomplete3 ansible-pull)
-_have ansible-vault && . <(register-python-argcomplete3 ansible-vault)
+_have ansible && . <(register-python-argcomplete ansible)
+_have ansible-config && . <(register-python-argcomplete ansible-config)
+_have ansible-console && . <(register-python-argcomplete ansible-console)
+_have ansible-doc && . <(register-python-argcomplete ansible-doc)
+_have ansible-galaxy && . <(register-python-argcomplete ansible-galaxy)
+_have ansible-inventory && . <(register-python-argcomplete ansible-inventory)
+_have ansible-playbook && . <(register-python-argcomplete ansible-playbook)
+_have ansible-pull && . <(register-python-argcomplete ansible-pull)
+_have ansible-vault && . <(register-python-argcomplete ansible-vault)
 
 # -------------------- personalized configuration --------------------
 _source_if "$HOME/.bash_personal"
