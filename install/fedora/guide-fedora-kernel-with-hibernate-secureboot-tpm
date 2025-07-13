@@ -25,12 +25,12 @@ dracut -f
 ### Set variables
 ## search for kernel: https://koji.fedoraproject.org/koji/search?start=50&order=-name&terms=kernel-6.%2A.fc41&type=build&match=glob
 export arch=x86_64
-export ver=6.14
-export minrel=4
+export ver=6.15
+export minrel=6
 export pkgrel=200
 export subver=$minrel-$pkgrel
-export fedver=fc41
-export name=$(hostname)
+export fedver=fc42
+export name="hibernatetpm"
 
 sudo dnf install fedpkg qt3-devel libXi-devel gcc-c++ ccache
 ### Custom Machine owner key for secure boot
@@ -38,10 +38,9 @@ sudo dnf install fedpkg qt3-devel libXi-devel gcc-c++ ccache
 # Allow kernel signing
 sudo /usr/libexec/pesign/pesign-authorize
 # Create key
-openssl req -new -x509 -newkey rsa:2048 -keyout "key.pem" -outform DER -out "cert.der" -nodes -days 36500 -subj "CA=${name}"
+openssl req -new -x509 -newkey rsa:2048 -keyout "key.pem" -outform DER -out "cert.der" -nodes -days 36500 -subj "/CN=${name}"
 # Import key to UEFI database.
 mokutil --import "cert.der"
-time rpmbuild -bb --with baseonly --without debuginfo --target=$arch kernel.spec | tee ~/build-kernel.log
 ## careful: use usb stick with live fedora for mok, as fedora won't boot
 ## anymore if it can't find its mokmanager and is stuck enrolling the key.
 # You have to reboot the system after importing the key with "mokutil" to import the key via UEFI system
