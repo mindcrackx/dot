@@ -373,6 +373,10 @@ _have ansible-playbook && . <(register-python-argcomplete3 ansible-playbook)
 _have ansible-pull && . <(register-python-argcomplete3 ansible-pull)
 _have ansible-vault && . <(register-python-argcomplete3 ansible-vault)
 
+export NVM_DIR="$HOME/.nvm"
+# _have node && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+# _have node && [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 # -------------------- personalized configuration --------------------
 _source_if "$HOME/.bash_personal"
 _source_if "$HOME/.bash_private"
@@ -383,7 +387,4 @@ setxkbmap de > /dev/null 2>&1 # TODO: fix for wayland
 _have terraform && complete -C /usr/bin/terraform terraform
 _have terraform && complete -C /usr/bin/terraform tf
 
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
