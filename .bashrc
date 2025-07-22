@@ -363,15 +363,15 @@ _have podman && _source_if "$HOME/.local/share/podman/completion" # d
 _have docker && _source_if "$HOME/.local/share/docker/completion" # d
 _have docker-compose && complete -F _docker_compose dc # dc
 
-_have ansible && . <(register-python-argcomplete ansible)
-_have ansible-config && . <(register-python-argcomplete ansible-config)
-_have ansible-console && . <(register-python-argcomplete ansible-console)
-_have ansible-doc && . <(register-python-argcomplete ansible-doc)
-_have ansible-galaxy && . <(register-python-argcomplete ansible-galaxy)
-_have ansible-inventory && . <(register-python-argcomplete ansible-inventory)
-_have ansible-playbook && . <(register-python-argcomplete ansible-playbook)
-_have ansible-pull && . <(register-python-argcomplete ansible-pull)
-_have ansible-vault && . <(register-python-argcomplete ansible-vault)
+_have ansible && . <(register-python-argcomplete3 ansible)
+_have ansible-config && . <(register-python-argcomplete3 ansible-config)
+_have ansible-console && . <(register-python-argcomplete3 ansible-console)
+_have ansible-doc && . <(register-python-argcomplete3 ansible-doc)
+_have ansible-galaxy && . <(register-python-argcomplete3 ansible-galaxy)
+_have ansible-inventory && . <(register-python-argcomplete3 ansible-inventory)
+_have ansible-playbook && . <(register-python-argcomplete3 ansible-playbook)
+_have ansible-pull && . <(register-python-argcomplete3 ansible-pull)
+_have ansible-vault && . <(register-python-argcomplete3 ansible-vault)
 
 # -------------------- personalized configuration --------------------
 _source_if "$HOME/.bash_personal"
