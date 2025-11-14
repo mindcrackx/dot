@@ -2,3 +2,29 @@ set editing-mode vi
 set enable-bracketed-paste on
 set bell-style none
 set keymap vi
+
+# Make Tab autocomplete case-insensitive
+set completion-ignore-case on
+
+# Show all autocomplete results at once
+set page-completions off
+
+# Immediately show all possible completions
+set show-all-if-ambiguous on
+
+# Show extra file information when completing (like `ls -F`)
+set visible-stats on
+
+# Allow UTF-8 input and output
+set input-meta on
+set output-meta on
+set convert-meta off
+
+# Use the text that has already been typed as the prefix for searching
+# through commands (i.e. more intelligent Up/Down behavior)
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+
+# Ctrl+Left/Right to move by word
+"\e[1;5C": forward-word
+"\e[1;5D": backward-word

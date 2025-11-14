@@ -1,3 +1,8 @@
 #!/usr/bin/env bash
 
-exec ls -lAh --color "$@"
+# Use eza if available, otherwise fall back to ls
+if command -v eza &> /dev/null; then
+  exec eza -lAh --group-directories-first --icons=auto "$@"
+else
+  exec ls -lAh --color "$@"
+fi
