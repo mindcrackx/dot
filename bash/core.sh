@@ -235,7 +235,10 @@ alias clear='printf "\e[H\e[2J"'
 alias c='printf "\e[H\e[2J"'
 # nur wenn das jeweilige Tool/Script vorhanden ist
 _have tree     && alias tree='tree -a'
-_have pcregrep && alias grep='pcregrep'
+# grep -> PCRE-grep (PCRE1 pcregrep auf alten Distros, PCRE2 pcre2grep ab z.B. Debian 13)
+if   _have pcregrep;  then alias grep='pcregrep'
+elif _have pcre2grep; then alias grep='pcre2grep'
+fi
 _have bashtop  && alias top='bashtop'
 _have sshpass  && alias sshh='sshpass -f $HOME/.sshpass ssh '
 _have duck     && alias '?'='duck'

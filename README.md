@@ -12,7 +12,8 @@ export GITUSER=mindcrackx
 mkdir -p ~/Repos/github.com/$GITUSER
 git clone git@github.com:$GITUSER/dot ~/Repos/github.com/$GITUSER/dot
 cd ~/Repos/github.com/$GITUSER/dot
-./install.sh --profile server      # oder: --profile desktop
+sudo ./install/core-packages.sh    # Core-CLI-Tools (vim, htop, tree, fzf, pcre2grep …)
+./install.sh --profile server      # Symlinks + Profil (oder: --profile desktop)
 source ~/.bashrc
 ```
 
@@ -35,6 +36,7 @@ git/gitconfig-shared.ini # geteilte Git-Defaults + Aliases (KEIN [user], KEIN er
 scripts/                 # ~40 kleine exec-Wrapper (k, g, d, ll, vi …) → ~/Scripts
 .inputrc .dircolors tmux/.tmux.conf .profile
 nvim/                    # nur verlinkt, wenn nvim installiert ist
+install/core-packages.sh # Core-CLI-Tools für JEDE Maschine (cross-distro apt/dnf/pacman)
 install/                 # ältere, distro-spezifische Setup-Skripte (fedora/ubuntu/omarchy)
 ```
 
